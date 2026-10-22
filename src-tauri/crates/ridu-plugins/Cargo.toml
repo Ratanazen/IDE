@@ -1,0 +1,12 @@
+[package]
+name = "ridu-plugins"
+version = "0.1.0"
+edition = "2021"
+description = "Versioned plugin interfaces, permission validation, and extensions registry for Ridu IDE"
+authors = ["Ridu Team"]
+
+[dependencies]
+ridu-core = { path = "../ridu-core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"

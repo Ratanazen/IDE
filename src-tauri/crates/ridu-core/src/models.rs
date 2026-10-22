@@ -424,3 +424,179 @@ impl BuildCommand {
         self
     }
 }
+
+// ---------------------------------------------------------------------------
+// Ecosystem Public API Structures (VS Code + Xcode Hybrid Architecture)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ProjectKind {
+    Flutter,
+    SwiftPackage,
+    XcodeProject,
+    ClangNative,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Project {
+    pub id: String,
+    pub name: String,
+    pub path: PathBuf,
+    pub kind: ProjectKind,
+    pub root_directory: PathBuf,
+    pub active_scheme: Option<String>,
+    pub active_configuration: Option<String>,
+    pub active_target: Option<String>,
+    pub targets: Vec<BuildTarget>,
+    pub schemes: Vec<Scheme>,
+    pub configurations: Vec<BuildConfiguration>,
+    pub deployment_target: Option<String>,
+    pub bundle_identifier: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ProductType {
+    Application,
+    Framework,
+    StaticLibrary,
+    DynamicLibrary,
+    CommandLineTool,
+    UnitTestBundle,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BuildTarget {
+    pub id: String,
+    pub name: String,
+    pub platform: TargetPlatform,
+    pub product_type: ProductType,
+    pub bundle_identifier: Option<String>,
+    pub source_files: Vec<PathBuf>,
+    pub header_files: Vec<PathBuf>,
+    pub resource_files: Vec<PathBuf>,
+    pub frameworks: Vec<String>,
+    pub build_settings: HashMap<String, String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BuildConfiguration {
+    pub name: String, // e.g., "Debug", "Release", "Profile"
+    pub mode: BuildMode,
+    pub optimization_level: String, // e.g., "-O0", "-O3", "-Osize"
+    pub defines: Vec<String>,
+    pub swift_flags: Vec<String>,
+    pub c_flags: Vec<String>,
+    pub ld_flags: Vec<String>,
+    pub environment: HashMap<String, String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Scheme {
+    pub name: String,
+    pub build_target_id: String,
+    pub default_configuration: String,
+    pub test_target_id: Option<String>,
+    pub launch_arguments: Vec<String>,
+    pub environment_variables: HashMap<String, String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolchainInfo {
+    pub id: String,
+    pub name: String,
+    pub binary_path: Option<PathBuf>,
+    pub version: Option<String>,
+    pub status: CapabilityStatus,
+    pub triple: Option<String>,
+    pub details: Option<String>,
+    pub documentation_url: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum BuildEvent {
+    StageStarted { stage_name: String, phase: BuildPhase },
+    StageOutput { stage_name: String, stream: String, text: String },
+    StageCompleted { stage_name: String, duration_ms: u64, success: bool },
+    DiagnosticEmitted { diagnostic: Diagnostic },
+    BuildProgress { fraction: f32, message: String },
+    BuildFinished { report: BuildReport },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum DiagnosticSeverity {
+    Error,
+    Warning,
+    Information,
+    Hint,
+}
+
+impl std::fmt::Display for DiagnosticSeverity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DiagnosticSeverity::Error => write!(f, "error"),
+            DiagnosticSeverity::Warning => write!(f, "warning"),
+            DiagnosticSeverity::Information => write!(f, "info"),
+            DiagnosticSeverity::Hint => write!(f, "hint"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Diagnostic {
+    pub id: String,
+    pub file_path: PathBuf,
+    pub line: usize,
+    pub column: usize,
+    pub end_line: Option<usize>,
+    pub end_column: Option<usize>,
+    pub severity: DiagnosticSeverity,
+    pub message: String,
+    pub source: String, // e.g. "clang", "swiftc", "dart", "ld64"
+    pub code: Option<String>,
+    pub snippet: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArtifactInfo {
+    pub name: String,
+    pub path: PathBuf,
+    pub size_bytes: u64,
+    pub sha256_hash: String,
+    pub platform: TargetPlatform,
+    pub is_directory_bundle: bool,
+    pub bundle_identifier: Option<String>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DebugState {
+    Configuring,
+    Running,
+    Paused,
+    Stopped,
+    Terminated,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Breakpoint {
+    pub id: String,
+    pub file_path: PathBuf,
+    pub line: usize,
+    pub column: Option<usize>,
+    pub condition: Option<String>,
+    pub is_verified: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DebugSession {
+    pub id: String,
+    pub project_id: String,
+    pub target_id: String,
+    pub state: DebugState,
+    pub process_id: Option<u32>,
+    pub active_breakpoints: Vec<Breakpoint>,
+    pub adapter_name: String, // e.g. "lldb", "flutter-dap"
+    pub started_at: DateTime<Utc>,
+}
+

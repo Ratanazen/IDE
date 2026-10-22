@@ -10,6 +10,11 @@ members = [
     "crates/ridu-signing",
     "crates/ridu-artifacts",
     "crates/ridu-device",
+    "crates/ridu-editor",
+    "crates/ridu-language",
+    "crates/ridu-compiler",
+    "crates/ridu-debug",
+    "crates/ridu-plugins",
 ]
 
 [package]
@@ -36,6 +41,12 @@ ridu-ios = { path = "crates/ridu-ios" }
 ridu-signing = { path = "crates/ridu-signing" }
 ridu-artifacts = { path = "crates/ridu-artifacts" }
 ridu-device = { path = "crates/ridu-device" }
+ridu-editor = { path = "crates/ridu-editor" }
+ridu-language = { path = "crates/ridu-language" }
+ridu-compiler = { path = "crates/ridu-compiler" }
+ridu-debug = { path = "crates/ridu-debug" }
+ridu-plugins = { path = "crates/ridu-plugins" }
+
 
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"

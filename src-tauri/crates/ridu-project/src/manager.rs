@@ -1,9 +1,11 @@
 use super::models::{CreateProjectRequest, ProjectActionResult, ProjectMetadata};
 use ridu_security::PathValidator;
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use thiserror::Error;
+
 
 #[derive(Error, Debug)]
 pub enum ProjectError {
@@ -223,4 +225,114 @@ impl ProjectManager {
             stderr,
         })
     }
+
+    /// Unified inspector for any project kind in the Ridu ecosystem (Xcode, SPM, Flutter, Native C/C++).
+    pub fn inspect_ecosystem_project<P: AsRef<Path>>(path: P) -> Result<ridu_core::models::Project, ProjectError> {
+        let canonical = PathValidator::validate_project_dir(path.as_ref())?;
+
+        // 1. Try Xcode project
+        if let Some(xcode_proj) = super::xcode::XcodeProjectParser::parse_project(&canonical) {
+            return Ok(xcode_proj);
+        }
+
+        // 2. Try Swift Package Manager
+        if let Some(spm_proj) = super::spm::SwiftPackageManager::parse_package(&canonical) {
+            return Ok(spm_proj);
+        }
+
+        // 3. Try Flutter project
+        if canonical.join("pubspec.yaml").exists() {
+            let meta = Self::import_project(&canonical)?;
+            let mut targets = Vec::new();
+
+            for plat in &meta.platforms {
+                let target_platform = match plat.as_str() {
+                    "ios" => ridu_core::models::TargetPlatform::IosApp,
+                    "linux" => ridu_core::models::TargetPlatform::LinuxDesktop,
+                    "android" => ridu_core::models::TargetPlatform::AndroidApk,
+                    _ => ridu_core::models::TargetPlatform::Web,
+                };
+
+                targets.push(ridu_core::models::BuildTarget {
+                    id: format!("flutter_target_{}", plat),
+                    name: format!("{} ({})", meta.name, plat),
+                    platform: target_platform,
+                    product_type: ridu_core::models::ProductType::Application,
+                    bundle_identifier: Some(format!("com.example.{}", meta.name.to_lowercase())),
+                    source_files: vec![canonical.join("lib/main.dart")],
+                    header_files: Vec::new(),
+                    resource_files: Vec::new(),
+                    frameworks: Vec::new(),
+                    build_settings: HashMap::new(),
+                });
+            }
+
+            let schemes = targets.iter().map(|t| ridu_core::models::Scheme {
+                name: t.name.clone(),
+                build_target_id: t.id.clone(),
+                default_configuration: "Debug".to_string(),
+                test_target_id: None,
+                launch_arguments: Vec::new(),
+                environment_variables: HashMap::new(),
+            }).collect();
+
+            let configurations = vec![
+                ridu_core::models::BuildConfiguration {
+                    name: "Debug".to_string(),
+                    mode: ridu_core::models::BuildMode::Debug,
+                    optimization_level: "-O0".to_string(),
+                    defines: vec!["DEBUG=1".to_string()],
+                    swift_flags: Vec::new(),
+                    c_flags: Vec::new(),
+                    ld_flags: Vec::new(),
+                    environment: HashMap::new(),
+                },
+                ridu_core::models::BuildConfiguration {
+                    name: "Release".to_string(),
+                    mode: ridu_core::models::BuildMode::Release,
+                    optimization_level: "-O3".to_string(),
+                    defines: Vec::new(),
+                    swift_flags: Vec::new(),
+                    c_flags: Vec::new(),
+                    ld_flags: Vec::new(),
+                    environment: HashMap::new(),
+                },
+            ];
+
+            return Ok(ridu_core::models::Project {
+                id: format!("flutter_{}", meta.name.to_lowercase()),
+                name: meta.name.clone(),
+                path: canonical.clone(),
+                kind: ridu_core::models::ProjectKind::Flutter,
+                root_directory: canonical,
+                active_scheme: targets.first().map(|t| t.name.clone()),
+                active_configuration: Some("Debug".to_string()),
+                active_target: targets.first().map(|t| t.id.clone()),
+                targets,
+                schemes,
+                configurations,
+                deployment_target: None,
+                bundle_identifier: Some(format!("com.example.{}", meta.name.to_lowercase())),
+            });
+        }
+
+        // 4. Fallback to ClangNative or Unknown
+        let dir_name = canonical.file_name().unwrap_or_default().to_string_lossy().to_string();
+        Ok(ridu_core::models::Project {
+            id: format!("native_{}", dir_name.to_lowercase()),
+            name: dir_name,
+            path: canonical.clone(),
+            kind: ridu_core::models::ProjectKind::ClangNative,
+            root_directory: canonical,
+            active_scheme: None,
+            active_configuration: Some("Debug".to_string()),
+            active_target: None,
+            targets: Vec::new(),
+            schemes: Vec::new(),
+            configurations: Vec::new(),
+            deployment_target: None,
+            bundle_identifier: None,
+        })
+    }
 }
+

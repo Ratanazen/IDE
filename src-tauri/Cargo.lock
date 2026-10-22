@@ -2724,9 +2724,14 @@ dependencies = [
  "regex",
  "ridu-artifacts",
  "ridu-build",
+ "ridu-compiler",
  "ridu-core",
+ "ridu-debug",
  "ridu-device",
+ "ridu-editor",
  "ridu-ios",
+ "ridu-language",
+ "ridu-plugins",
  "ridu-project",
  "ridu-security",
  "ridu-signing",
@@ -2895,6 +2900,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "ridu-compiler"
+version = "0.1.0"
+dependencies = [
+ "ridu-core",
+ "ridu-language",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "which",
+]
+
+[[package]]
 name = "ridu-core"
 version = "0.1.0"
 dependencies = [
@@ -2906,6 +2923,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "ridu-debug"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "ridu-core",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "which",
+]
+
+[[package]]
 name = "ridu-device"
 version = "0.1.0"
 dependencies = [
@@ -2913,6 +2942,17 @@ dependencies = [
  "serde",
  "serde_json",
  "which",
+]
+
+[[package]]
+name = "ridu-editor"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "ridu-core",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
@@ -2930,12 +2970,36 @@ dependencies = [
 ]
 
 [[package]]
-name = "ridu-project"
+name = "ridu-language"
+version = "0.1.0"
+dependencies = [
+ "regex",
+ "ridu-core",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "which",
+]
+
+[[package]]
+name = "ridu-plugins"
 version = "0.1.0"
 dependencies = [
  "ridu-core",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "ridu-project"
+version = "0.1.0"
+dependencies = [
+ "regex",
+ "ridu-core",
  "ridu-security",
  "serde",
+ "tempfile",
  "thiserror 2.0.21",
  "walkdir",
  "which",

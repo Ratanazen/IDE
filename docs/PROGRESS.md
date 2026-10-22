@@ -17,8 +17,8 @@ Last Updated: 2026-10-22
 | **M8** | iOS Research Spike | **DONE** | docs/IOS_TOOLCHAIN_RESEARCH.md & docs/XCODE_FUNCTION_COMPATIBILITY.md complete with evidence |
 | **M9** | iOS Adapter, Validators & Packaging | **DONE** | Validator rejects invalid fixtures; adapter reports honest statuses |
 | **M10** | Ridu Modular Workspace & Native iOS Engine | **DONE** | 9-crate modular architecture, Mach-O parser, profile parser, 24/24 tests pass |
-| **M11** | Live Build Engine & Streaming IPC Bridge | **PLANNED** | Live process output streaming to UI, asynchronous cancellation, real build events |
-| **M12** | Project Studio & Editor with Monaco | **PLANNED** | Multi-file tabs, syntax highlighting, pubspec manager, file operations |
+| **M11** | VS Code + Xcode Hybrid Architecture & Ecosystem | **DONE** | 14-crate workspace, Xcode PBX/SPM parsers, LLVM Clang/ld64 builder, LLDB/idevice debug, 43/43 tests pass |
+| **M12** | Live Build Engine & Streaming IPC Bridge | **PLANNED** | Live process output streaming to UI, asynchronous cancellation, real build events |
 | **M13** | Device Studio & Live Development | **PLANNED** | Interactive flutter run session, Hot Reload ('r'), Hot Restart ('R') |
 | **M14** | AI Build Assistant & Diagnostics | **PLANNED** | Local Ollama / API LLM backend, sanitized log scrubbing, diff patching |
 | **M15** | Native iOS Sysroot & Remote Mac Agent | **PLANNED** | Local Apple iOS SDK cross-clang integration, remote macOS SSH worker |
@@ -127,13 +127,41 @@ Last Updated: 2026-10-22
     - `ridu-signing`: `CodeSignatureVerifier` (bundle inspection, `CodeResources`), `ProvisioningProfileParser` (CMS embedded XML plist extraction).
     - `ridu-artifacts`: `ArtifactDiscovery`, `ArtifactVerifier` (SHA-256), `IpaValidator`, `BuildHistoryStore` (`xdg-open`).
     - `ridu-device`: `DeviceManager` (`flutter devices --machine` parser).
+### Milestone 11: VS Code + Xcode Hybrid Architecture & Extended Ecosystem
+- **Status**: DONE
+- **Architecture**:
+  - Expanded Cargo workspace from 9 to 14 independent crates under `src-tauri/crates/`:
+    - `ridu-compiler`: LLVM Clang invocation builder (`-target arm64-apple-ios`, `-isysroot`, `-fobjc-arc`), Mach-O linker builder (`ld64.lld`), Swift compiler discovery, sysroot validation.
+    - `ridu-debug`: LLDB script generator (`target create`, `breakpoint set`, `target select arch`), `DebugSessionManager`, libimobiledevice host discovery (`ideviceinfo`, `ideviceinstaller`, `ios-deploy`).
+    - `ridu-editor`: Multi-tab document model, line indexing, language detection (`.swift`, `.m`, `.mm`, `.c`, `.cpp`, `.dart`, `.pbxproj`, `.plist`), cursor state.
+    - `ridu-language`: Unified multi-compiler diagnostics parser (`file:line:col: severity: msg` for Clang, Swiftc, GCC, and Dart Analyzer) and LSP registry (`clangd`, `sourcekit-lsp`, `dart-lsp`).
+    - `ridu-plugins`: Extensible plugin system with permission manifest enforcement (`FilesystemRead`, `FilesystemWrite`, `ProcessSpawn`, `ToolchainAccess`) and built-in plugins (`ridu.apple-swift`, `ridu.xcode-inspector`, `ridu.clang-llvm`, `ridu.flutter-dart`).
+  - Extended `ridu-project`:
+    - `XcodeProjectParser`: Parses `.xcodeproj/project.pbxproj` (targets, product types, configurations, build settings).
+    - `SwiftPackageManager`: Parses Swift PM `Package.swift` manifests and detects dependencies.
+    - `inspect_ecosystem_project`: Auto-detects Flutter, Xcode PBX, Swift PM, and C/C++ projects.
+  - Exposed 7 new Tauri IPC commands: `inspect_ecosystem_project`, `get_compiler_tools`, `get_language_servers`, `parse_compiler_diagnostics`, `list_plugins`, `get_idevice_tools`, `generate_lldb_script`.
+  - Frontend Hybrid IDE UI:
+    - `ActivityBar.tsx`: 48px VS Code-style sidebar (Explorer, Xcode Inspector, Search, Git, Debug, Toolchain, Plugins, Settings) with active indicators and badges.
+    - `XcodeToolbar.tsx`: Top Xcode Scheme Bar (`ActiveScheme > Configuration | Device`), execution controls (Run, Stop, Build, Clean, Hot Reload, Hot Restart), panel toggles, Command Palette trigger.
+    - `XcodeInspector.tsx`: File Inspector, searchable Build Settings, Signing & Capabilities (+ capability modal, bundle ID editor, CodeResources ad-hoc status), and SwiftUI Canvas with truthful Linux runtime notices.
+    - `BottomPanel.tsx`: Resizable bottom panel with Problems tab (severity icons, error/warning count, click to jump to file & line), filterable Output stream (All, Build, Compiler, Flutter, System), Debug Console (interactive LLDB input), and Terminal.
+    - `CommandPalette.tsx`: Modal dialog (`Ctrl+Shift+P` / `Cmd+Shift+P` / `F1`) with searchable commands and shortcut triggers.
+    - `EditorView.tsx`: Multi-tab editor tabs, breadcrumb bar, line numbers, cursor tracker (Ln, Col), and editor status bar.
+    - `ToolchainView.tsx`: Discovered LLVM tools, Clang Darwin target capabilities, and the Honest Linux iOS Capability Matrix table.
+    - `PluginsView.tsx`: Extensions manager with permission badges and enable/disable toggles.
+    - `GitView.tsx`: Source control sidebar with staged changes, commit input, commit and push buttons.
+    - `App.tsx`: Full integration of resizable 3-zone layout, observable state, and global keyboard shortcuts.
 - **Test Results**:
-  - Total test suite: **24/24 tests passing** (`cargo test -- --test-threads=1`).
-    - `m1_unit_tests.rs`: 8/8 passed (detection, commands, state transitions, child process group cancellation, timeout, locks, redaction, traversal).
-    - `m2_project_tests.rs`: 2/2 passed (project creation, import, analyze).
-    - `m3_build_tests.rs`: 2/2 passed (Linux release bundle build, Web release build).
-    - `m4_android_tests.rs`: 3/3 passed (release APK verification, signing detection, cmdline-tools diagnostic).
-    - `m9_ios_tests.rs`: 3/3 passed (IPA validator integrity, payload directory, Info.plist parsing, honest capability reporting).
-    - `ridu_modular_tests.rs`: 6/6 passed (Mach-O 64-bit parser, provisioning profile parser, code signature verifier, iOS project inspection, build plan generation, stage execution, toolchain APIs).
-  - Frontend build: `pnpm build` (`tsc && vite build`) compiles in **658ms**.
+  - Full test suite: **43/43 tests passing** (31 integration tests + 12 crate unit tests).
+    - `ecosystem_tests.rs`: 7/7 passed.
+    - `m1_unit_tests.rs`: 8/8 passed.
+    - `m2_project_tests.rs`: 2/2 passed.
+    - `m3_build_tests.rs`: 2/2 passed.
+    - `m4_android_tests.rs`: 3/3 passed.
+    - `m9_ios_tests.rs`: 3/3 passed.
+    - `ridu_modular_tests.rs`: 6/6 passed.
+    - Crate unit tests: `ridu-compiler` (3/3), `ridu-debug` (2/2), `ridu-editor` (2/2), `ridu-language` (2/2), `ridu-plugins` (1/1), `ridu-project` (2/2).
+  - Frontend build: `pnpm build` (`tsc && vite build`) compiles cleanly in **808ms**.
 - **Blockers**: None.
+

@@ -1,9 +1,14 @@
 pub use ridu_artifacts as artifacts;
 pub use ridu_build as builds;
 pub use ridu_build::process;
+pub use ridu_compiler as compiler;
 pub use ridu_core as core;
+pub use ridu_debug as debug;
 pub use ridu_device as devices;
+pub use ridu_editor as editor;
 pub use ridu_ios as ios;
+pub use ridu_language as language;
+pub use ridu_plugins as plugins;
 pub use ridu_project as projects;
 pub use ridu_security as security;
 pub use ridu_signing as signing;
@@ -11,11 +16,17 @@ pub use ridu_toolchain as toolchain;
 
 use artifacts::{BuildHistoryStore, IpaValidator};
 use builds::BuildResult;
+use compiler::CompilerDiscovery;
+use core::models::{CapabilityStatus, Diagnostic, Project, ToolchainInfo};
+use debug::{Breakpoint, IosDeviceDeployment, LaunchConfiguration, LldbAdapter};
 use devices::{Device, DeviceManager};
 use ios::{IosToolchainDetector, IosToolchainReport, IpaValidationReport};
+use language::{DiagnosticsParser, LspRegistry, LspServerInfo};
+use plugins::{PluginManifest, PluginRegistry};
 use projects::{CreateProjectRequest, FileEntry, ProjectActionResult, ProjectFs, ProjectManager, ProjectMetadata};
 use std::path::PathBuf;
 use toolchain::{ToolchainDetector, ToolchainReport};
+
 
 #[tauri::command]
 fn get_toolchain_report() -> ToolchainReport {
@@ -30,6 +41,11 @@ fn create_project(req: CreateProjectRequest) -> Result<ProjectMetadata, String> 
 #[tauri::command]
 fn import_project(path: PathBuf) -> Result<ProjectMetadata, String> {
     ProjectManager::import_project(path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn inspect_ecosystem_project(path: PathBuf) -> Result<Project, String> {
+    ProjectManager::inspect_ecosystem_project(path).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -77,6 +93,36 @@ fn validate_ipa_archive(ipa_path: PathBuf) -> Result<IpaValidationReport, String
     IpaValidator::validate_ipa(ipa_path).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn get_compiler_tools() -> Vec<ToolchainInfo> {
+    CompilerDiscovery::discover_tools()
+}
+
+#[tauri::command]
+fn get_language_servers() -> Vec<LspServerInfo> {
+    LspRegistry::detect_all()
+}
+
+#[tauri::command]
+fn parse_compiler_diagnostics(output: String, source: String) -> Vec<Diagnostic> {
+    DiagnosticsParser::parse(&output, &source)
+}
+
+#[tauri::command]
+fn list_plugins() -> Vec<PluginManifest> {
+    PluginRegistry::new().list_plugins()
+}
+
+#[tauri::command]
+fn get_idevice_tools() -> (CapabilityStatus, Vec<String>) {
+    IosDeviceDeployment::probe_idevice_tools()
+}
+
+#[tauri::command]
+fn generate_lldb_script(config: LaunchConfiguration, breakpoints: Vec<Breakpoint>) -> String {
+    LldbAdapter::generate_script(&config, &breakpoints)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -85,6 +131,7 @@ pub fn run() {
             get_toolchain_report,
             create_project,
             import_project,
+            inspect_ecosystem_project,
             run_project_action,
             get_connected_devices,
             list_project_files,
@@ -93,8 +140,15 @@ pub fn run() {
             get_build_history,
             reveal_in_file_manager,
             get_ios_toolchain_report,
-            validate_ipa_archive
+            validate_ipa_archive,
+            get_compiler_tools,
+            get_language_servers,
+            parse_compiler_diagnostics,
+            list_plugins,
+            get_idevice_tools,
+            generate_lldb_script
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+

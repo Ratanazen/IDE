@@ -147,3 +147,127 @@ export interface IpaValidationReport {
   has_info_plist: boolean;
   details: string[];
 }
+
+// ---------------------------------------------------------------------------
+// Ecosystem Models (VS Code + Xcode Hybrid Architecture)
+// ---------------------------------------------------------------------------
+
+export type ProjectKind = 'Flutter' | 'SwiftPackage' | 'XcodeProject' | 'ClangNative' | 'Unknown';
+
+export type ProductType =
+  | 'Application'
+  | 'Framework'
+  | 'StaticLibrary'
+  | 'DynamicLibrary'
+  | 'CommandLineTool'
+  | 'UnitTestBundle';
+
+export interface BuildTargetModel {
+  id: string;
+  name: string;
+  platform: string;
+  product_type: ProductType;
+  bundle_identifier?: string;
+  source_files: string[];
+  header_files: string[];
+  resource_files: string[];
+  frameworks: string[];
+  build_settings: Record<string, string>;
+}
+
+export interface BuildConfigurationModel {
+  name: string;
+  mode: BuildMode;
+  optimization_level: string;
+  defines: string[];
+  swift_flags: string[];
+  c_flags: string[];
+  ld_flags: string[];
+  environment: Record<string, string>;
+}
+
+export interface SchemeModel {
+  name: string;
+  build_target_id: string;
+  default_configuration: string;
+  test_target_id?: string;
+  launch_arguments: string[];
+  environment_variables: Record<string, string>;
+}
+
+export interface EcosystemProject {
+  id: string;
+  name: string;
+  path: string;
+  kind: ProjectKind;
+  root_directory: string;
+  active_scheme?: string;
+  active_configuration?: string;
+  active_target?: string;
+  targets: BuildTargetModel[];
+  schemes: SchemeModel[];
+  configurations: BuildConfigurationModel[];
+  deployment_target?: string;
+  bundle_identifier?: string;
+}
+
+export type DiagnosticSeverity = 'error' | 'warning' | 'info' | 'hint';
+
+export interface Diagnostic {
+  id: string;
+  file_path: string;
+  line: number;
+  column: number;
+  end_line?: number;
+  end_column?: number;
+  severity: DiagnosticSeverity;
+  message: string;
+  source: string;
+  code?: string;
+  snippet?: string;
+}
+
+export interface ToolchainInfo {
+  id: string;
+  name: string;
+  binary_path?: string;
+  version?: string;
+  status: IosCapabilityStatus;
+  triple?: string;
+  details?: string;
+  documentation_url?: string;
+}
+
+export interface LspServerInfo {
+  id: string;
+  name: string;
+  path?: string;
+  supported_languages: string[];
+  status: IosCapabilityStatus;
+  command_args: string[];
+}
+
+export interface PluginManifest {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  permissions: string[];
+  activation_events: string[];
+  is_enabled: boolean;
+  is_builtin: boolean;
+}
+
+export type BottomPanelTab = 'problems' | 'output' | 'debug' | 'terminal';
+
+export type ActivityBarTab =
+  | 'explorer'
+  | 'xcode-inspector'
+  | 'search'
+  | 'git'
+  | 'debug'
+  | 'toolchain'
+  | 'plugins'
+  | 'settings';
+

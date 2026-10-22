@@ -1,0 +1,13 @@
+[package]
+name = "ridu-editor"
+version = "0.1.0"
+edition = "2021"
+description = "Editor buffer management, document models, and workspace session state for Ridu IDE"
+authors = ["Ridu Team"]
+
+[dependencies]
+ridu-core = { path = "../ridu-core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+chrono = { version = "0.4", features = ["serde"] }
