@@ -8,8 +8,8 @@ Last Updated: 2026-10-22
 | :--- | :--- | :--- | :--- |
 | **M0** | Inspect and Plan | **DONE** | Current-state report delivered, plan confirmed, docs/ARCHITECTURE.md & docs/INSTALL_ARCH.md written |
 | **M1** | Toolchain Detector & Process Runner | **DONE** | Unit tests pass for detection, command construction, state transitions, process group cancellation, timeout |
-| **M2** | Tauri Shell & Project Manager | **IN PROGRESS** | Fixture project created, imported, analyzed from the app |
-| **M3** | Web and Linux Builds | PENDING | Web & Linux release artifacts built and verified from fixture |
+| **M2** | Tauri Shell & Project Manager | **DONE** | Fixture project created, imported, analyzed from the app |
+| **M3** | Web and Linux Builds | **IN PROGRESS** | Web & Linux release artifacts built and verified from fixture |
 | **M4** | Android APK and AAB | PENDING | APK and AAB built and verified (or missing toolchain reported with clear instructions) |
 | **M5** | Build Center, Logs, History, Artifacts | PENDING | Full build cycle visible, searchable in UI; persistence tested (MVP Gate) |
 | **M6** | Security Hardening | PENDING | Path traversal, symlink, secret-redaction tests pass |
@@ -51,4 +51,17 @@ Last Updated: 2026-10-22
   - `test_secret_redaction`: OK (Redacts passwords, tokens, Bearer auth, private keys).
   - `test_path_traversal_prevention`: OK (Rejects `..` traversal).
 - **Test Summary**: 8 passed; 0 failed; 0 ignored.
+- **Blockers**: None.
+
+### Milestone 2: Tauri Shell and Project Manager
+- **Status**: DONE
+- **Commands Executed**:
+  - `cargo test --test m2_project_tests` -> Verified `flutter create`, `import_project`, `flutter pub get`, `flutter analyze`, and `flutter test`.
+  - `pnpm build` -> Verified React 19 + TypeScript + Vite + Tailwind CSS shell builds cleanly into `dist/`.
+  - `flutter create --org com.ratana.fixture --project-name fixture_app --platforms web,linux,android fixtures/fixture_app` -> Created permanent fixture application.
+- **Results**:
+  - `test_project_name_validation`: OK.
+  - `test_create_import_analyze_fixture_project`: OK (all steps completed with exit code 0).
+  - Permanent fixture project created in `fixtures/fixture_app`.
+  - Tauri frontend shell built and verified (Sidebar, Toolbar, ProjectView, ToolchainView, TerminalView).
 - **Blockers**: None.
