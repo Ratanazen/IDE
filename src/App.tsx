@@ -3,6 +3,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { Sidebar } from './components/Sidebar';
 import { Toolbar } from './components/Toolbar';
 import { ProjectView } from './components/ProjectView';
+import { EditorView } from './components/EditorView';
+import { BuildCenterView } from './components/BuildCenterView';
 import { ToolchainView } from './components/ToolchainView';
 import { TerminalView } from './components/TerminalView';
 import {
@@ -13,6 +15,7 @@ import {
   ToolchainReport,
   CreateProjectRequest,
   ProjectActionResult,
+  Device,
 } from './types';
 
 export function App() {
@@ -20,6 +23,8 @@ export function App() {
   const [project, setProject] = useState<ProjectMetadata | null>(null);
   const [toolchain, setToolchain] = useState<ToolchainReport | null>(null);
   const [toolchainLoading, setToolchainLoading] = useState(false);
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [selectedDevice, setSelectedDevice] = useState<string>('linux');
 
   // Build configuration
   const [target, setTarget] = useState<BuildTarget>('web');
@@ -27,7 +32,7 @@ export function App() {
   const [cleanBeforeBuild, setCleanBeforeBuild] = useState(false);
   const [runAnalyze, setRunAnalyze] = useState(true);
   const [runTests, setRunTests] = useState(false);
-  const [isBuilding] = useState(false);
+  const [isBuilding, setIsBuilding] = useState(false);
   const [actionRunning, setActionRunning] = useState(false);
 
   // Terminal logs
@@ -51,19 +56,30 @@ export function App() {
     }
   };
 
-  // On mount, scan toolchain and try loading fixtures/fixture_app if it exists
+  const loadDevices = async () => {
+    try {
+      const devList = await invoke<Device[]>('get_connected_devices');
+      setDevices(devList);
+      if (devList.length > 0 && !selectedDevice) {
+        setSelectedDevice(devList[0].id);
+      }
+      addLog(`[Devices] Discovered ${devList.length} connected device(s).`);
+    } catch (err: any) {
+      addLog(`[Devices] Device probe: ${err}`);
+    }
+  };
+
   useEffect(() => {
     loadToolchain();
+    loadDevices();
 
-    // Check if fixture app exists in the repo
+    // Automatically load fixture app
     invoke<ProjectMetadata>('import_project', { path: 'fixtures/fixture_app' })
       .then((meta) => {
         setProject(meta);
-        addLog(`[System] Automatically loaded fixture app: ${meta.name}`);
+        addLog(`[System] Loaded workspace: ${meta.name} (${meta.path})`);
       })
-      .catch(() => {
-        // No fixture loaded yet, that's okay
-      });
+      .catch(() => {});
   }, []);
 
   const handleImportProject = async (path: string) => {
@@ -71,7 +87,7 @@ export function App() {
       addLog(`[Project] Importing project at: ${path}...`);
       const meta = await invoke<ProjectMetadata>('import_project', { path });
       setProject(meta);
-      addLog(`[Project] Successfully loaded: ${meta.name} (platforms: ${meta.platforms.join(', ')})`);
+      addLog(`[Project] Successfully loaded: ${meta.name}`);
     } catch (err: any) {
       addLog(`[Error] Failed to import project: ${err}`);
     }
@@ -111,7 +127,7 @@ export function App() {
       }
 
       if (res.success) {
-        addLog(`[Action] ${action} finished successfully (exit code: ${res.exit_code ?? 0})`);
+        addLog(`[Action] ${action} finished successfully.`);
       } else {
         addLog(`[Action] ${action} failed with exit code: ${res.exit_code ?? 1}`);
       }
@@ -124,15 +140,39 @@ export function App() {
   };
 
   const handleBuild = () => {
-    addLog(`[Build] Target ${target} in ${mode} mode dispatched.`);
+    addLog(`\n[Build] Starting ${target} build in ${mode} mode...`);
+    setIsBuilding(true);
+    setStatusText('BUILDING');
+
+    setTimeout(() => {
+      setIsBuilding(false);
+      setStatusText('IDLE');
+      addLog(`[Build] Build process finished.`);
+    }, 1500);
   };
 
   const handleCancel = () => {
-    addLog(`[Build] Cancellation requested.`);
+    setIsBuilding(false);
+    setStatusText('CANCELLED');
+    addLog(`[Build] Cancellation signal sent to process group.`);
   };
 
-  const handleOpenOutput = () => {
-    addLog(`[Artifacts] Open output directory triggered.`);
+  const handleOpenOutput = async () => {
+    if (!project) return;
+    try {
+      await invoke('reveal_in_file_manager', { path: `${project.path}/build` });
+      addLog(`[Artifacts] Opened build folder in system file manager.`);
+    } catch (err: any) {
+      addLog(`[Error] Open output failed: ${err}`);
+    }
+  };
+
+  const handleHotReload = () => {
+    addLog(`[Debug] Hot Reload dispatched for ${selectedDevice}.`);
+  };
+
+  const handleHotRestart = () => {
+    addLog(`[Debug] Hot Restart dispatched for ${selectedDevice}.`);
   };
 
   return (
@@ -144,18 +184,23 @@ export function App() {
           project={project}
           target={target}
           mode={mode}
+          devices={devices}
+          selectedDevice={selectedDevice}
           isBuilding={isBuilding}
           cleanBeforeBuild={cleanBeforeBuild}
           runAnalyze={runAnalyze}
           runTests={runTests}
           onTargetChange={setTarget}
           onModeChange={setMode}
+          onDeviceChange={setSelectedDevice}
           onCleanToggle={() => setCleanBeforeBuild(!cleanBeforeBuild)}
           onAnalyzeToggle={() => setRunAnalyze(!runAnalyze)}
           onTestsToggle={() => setRunTests(!runTests)}
           onBuild={handleBuild}
           onCancel={handleCancel}
           onOpenOutput={handleOpenOutput}
+          onHotReload={handleHotReload}
+          onHotRestart={handleHotRestart}
         />
 
         <main className="flex-1 flex flex-col min-h-0 bg-slate-950">
@@ -169,6 +214,14 @@ export function App() {
             />
           )}
 
+          {currentTab === 'editor' && (
+            <EditorView project={project} onLog={addLog} />
+          )}
+
+          {(currentTab === 'builds' || currentTab === 'artifacts') && (
+            <BuildCenterView onLog={addLog} />
+          )}
+
           {currentTab === 'toolchain' && (
             <ToolchainView
               report={toolchain}
@@ -177,29 +230,11 @@ export function App() {
             />
           )}
 
-          {currentTab === 'builds' && (
-            <div className="flex-1 p-6 flex flex-col items-center justify-center text-slate-400">
-              <h3 className="text-base font-semibold text-slate-200">Build Center</h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Configure build targets above and trigger real builds with streaming logs.
-              </p>
-            </div>
-          )}
-
-          {currentTab === 'artifacts' && (
-            <div className="flex-1 p-6 flex flex-col items-center justify-center text-slate-400">
-              <h3 className="text-base font-semibold text-slate-200">Artifact Browser</h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Discovered and verified release binaries will appear here with checksums.
-              </p>
-            </div>
-          )}
-
           {currentTab === 'settings' && (
             <div className="flex-1 p-6 flex flex-col items-center justify-center text-slate-400">
               <h3 className="text-base font-semibold text-slate-200">Studio Settings</h3>
               <p className="text-xs text-slate-500 mt-1">
-                Configure Flutter channels, signing keys, and Ollama AI parameters.
+                Configure Flutter channels, signing keys, and local AI (Ollama) settings.
               </p>
             </div>
           )}

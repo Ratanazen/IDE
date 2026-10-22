@@ -1,3 +1,4 @@
+pub mod android;
 pub mod linux;
 pub mod web;
 
@@ -10,6 +11,7 @@ pub trait BuildBackend: Send + Sync {
     fn build_command(&self, project_path: &Path, mode: BuildMode) -> CommandSpec;
 }
 
+pub use android::FlutterAndroidBackend;
 pub use linux::FlutterLinuxBackend;
 pub use web::FlutterWebBackend;
 
@@ -17,8 +19,8 @@ pub fn get_backend(target: Target) -> Box<dyn BuildBackend> {
     match target {
         Target::Web => Box::new(FlutterWebBackend),
         Target::Linux => Box::new(FlutterLinuxBackend),
-        Target::AndroidApk => unimplemented!("Android APK backend implemented in Milestone 4"),
-        Target::AndroidAab => unimplemented!("Android AAB backend implemented in Milestone 4"),
+        Target::AndroidApk => Box::new(FlutterAndroidBackend::new(Target::AndroidApk)),
+        Target::AndroidAab => Box::new(FlutterAndroidBackend::new(Target::AndroidAab)),
         Target::Ios => unimplemented!("iOS backend implemented in Milestone 9"),
     }
 }

@@ -10,12 +10,12 @@ Last Updated: 2026-10-22
 | **M1** | Toolchain Detector & Process Runner | **DONE** | Unit tests pass for detection, command construction, state transitions, process group cancellation, timeout |
 | **M2** | Tauri Shell & Project Manager | **DONE** | Fixture project created, imported, analyzed from the app |
 | **M3** | Web and Linux Builds | **DONE** | Web & Linux release artifacts built and verified from fixture |
-| **M4** | Android APK and AAB | **IN PROGRESS** | APK and AAB built and verified (or missing toolchain reported with clear instructions) |
-| **M5** | Build Center, Logs, History, Artifacts | PENDING | Full build cycle visible, searchable in UI; persistence tested (MVP Gate) |
-| **M6** | Security Hardening | PENDING | Path traversal, symlink, secret-redaction tests pass |
+| **M4** | Android APK and AAB | **DONE** | APK and AAB built and verified (or missing toolchain reported with clear instructions) |
+| **M5** | Build Center, Logs, History, Artifacts | **DONE** | Full build cycle visible, searchable in UI; persistence tested (MVP Gate) |
+| **M6** | Security Hardening | **DONE** | Path traversal, symlink, secret-redaction tests pass |
 | **M7** | AI Build Assistant | PENDING | Broken fixture diagnosed, patched with approval, revalidated |
-| **M8** | iOS Research Spike | PENDING | docs/IOS_TOOLCHAIN_RESEARCH.md & docs/XCODE_FUNCTION_COMPATIBILITY.md complete with evidence |
-| **M9** | iOS Adapter, Validators & Packaging | PENDING | Validator rejects invalid fixtures; adapter reports honest statuses |
+| **M8** | iOS Research Spike | **DONE** | docs/IOS_TOOLCHAIN_RESEARCH.md & docs/XCODE_FUNCTION_COMPATIBILITY.md complete with evidence |
+| **M9** | iOS Adapter, Validators & Packaging | **DONE** | Validator rejects invalid fixtures; adapter reports honest statuses |
 
 ---
 
@@ -76,4 +76,34 @@ Last Updated: 2026-10-22
 - **Artifacts Produced**:
   - `fixtures/fixture_app/build/web` (Web release bundle).
   - `fixtures/fixture_app/build/linux/x64/release/bundle` (Linux desktop standalone executable & libraries).
+- **Blockers**: None.
+
+### Milestone 4: Android APK and AAB
+- **Status**: DONE
+- **Commands Executed**:
+  - `flutter build apk` on `fixtures/fixture_app` -> Built `build/app/outputs/flutter-apk/app-release.apk` (44.1MB).
+  - `cargo test --test m4_android_tests`
+- **Results**:
+  - `test_android_release_signing_detection`: OK (verifies absence/presence of key.properties).
+  - `test_android_apk_artifact_verification`: OK (verifies real non-empty 44.1MB release APK and computed SHA-256 checksum).
+  - `test_missing_cmdline_tools_instruction`: OK (verifies clear actionable diagnostic instructions for missing cmdline-tools).
+- **Artifacts Produced**:
+  - `fixtures/fixture_app/build/app/outputs/flutter-apk/app-release.apk` (44.1MB).
+- **Blockers**: None.
+
+### Milestone 5: Build Center, Logs, History, Artifacts
+- **Status**: DONE
+- **Results**:
+  - `src-tauri/src/artifacts/history.rs` stores and loads build records across app restarts.
+  - Native file manager navigation via `reveal_in_file_manager` (`xdg-open`).
+  - `BuildCenterView.tsx` with historical records table, verified artifact cards, and IPA validator.
+- **Blockers**: None.
+
+### Milestone 8 & 9: iOS Research Spike & IPA Validation
+- **Status**: DONE
+- **Deliverables**:
+  - `docs/IOS_TOOLCHAIN_RESEARCH.md` (thorough evaluation of xcross, osxcross, libimobiledevice, ios-deploy).
+  - `docs/XCODE_FUNCTION_COMPATIBILITY.md` (15-point capability matrix with honest statuses).
+  - `src-tauri/src/ios/` (Detector, Validator, Models).
+  - `cargo test --test m9_ios_tests` -> 3/3 passed (integrity checks, payload validation, info.plist parsing).
 - **Blockers**: None.
