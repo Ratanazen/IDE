@@ -2722,6 +2722,15 @@ dependencies = [
  "dunce",
  "nix 0.29.0",
  "regex",
+ "ridu-artifacts",
+ "ridu-build",
+ "ridu-core",
+ "ridu-device",
+ "ridu-ios",
+ "ridu-project",
+ "ridu-security",
+ "ridu-signing",
+ "ridu-toolchain",
  "serde",
  "serde_json",
  "sha2",
@@ -2843,6 +2852,124 @@ dependencies = [
  "wasm-bindgen-futures",
  "wasm-streams",
  "web-sys",
+]
+
+[[package]]
+name = "ridu-artifacts"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "regex",
+ "ridu-core",
+ "ridu-security",
+ "ridu-signing",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.21",
+ "walkdir",
+ "zip",
+]
+
+[[package]]
+name = "ridu-build"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "dunce",
+ "nix 0.29.0",
+ "ridu-artifacts",
+ "ridu-core",
+ "ridu-project",
+ "ridu-security",
+ "ridu-toolchain",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.21",
+ "tokio",
+ "uuid",
+ "walkdir",
+ "which",
+]
+
+[[package]]
+name = "ridu-core"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "uuid",
+]
+
+[[package]]
+name = "ridu-device"
+version = "0.1.0"
+dependencies = [
+ "ridu-core",
+ "serde",
+ "serde_json",
+ "which",
+]
+
+[[package]]
+name = "ridu-ios"
+version = "0.1.0"
+dependencies = [
+ "ridu-artifacts",
+ "ridu-build",
+ "ridu-core",
+ "ridu-security",
+ "ridu-toolchain",
+ "serde",
+ "thiserror 2.0.21",
+ "which",
+]
+
+[[package]]
+name = "ridu-project"
+version = "0.1.0"
+dependencies = [
+ "ridu-core",
+ "ridu-security",
+ "serde",
+ "thiserror 2.0.21",
+ "walkdir",
+ "which",
+]
+
+[[package]]
+name = "ridu-security"
+version = "0.1.0"
+dependencies = [
+ "dunce",
+ "regex",
+ "ridu-core",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "ridu-signing"
+version = "0.1.0"
+dependencies = [
+ "ridu-core",
+ "ridu-security",
+ "serde",
+ "thiserror 2.0.21",
+ "walkdir",
+]
+
+[[package]]
+name = "ridu-toolchain"
+version = "0.1.0"
+dependencies = [
+ "regex",
+ "ridu-core",
+ "serde",
+ "which",
 ]
 
 [[package]]

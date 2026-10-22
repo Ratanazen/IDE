@@ -1,0 +1,13 @@
+[package]
+name = "ridu-project"
+version = "0.1.0"
+edition = "2021"
+description = "Flutter project parsing, pubspec analysis, and workspace file management for Ridu IDE"
+
+[dependencies]
+ridu-core = { path = "../ridu-core" }
+ridu-security = { path = "../ridu-security" }
+which = "7"
+walkdir = "2"
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"

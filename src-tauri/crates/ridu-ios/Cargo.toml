@@ -1,0 +1,15 @@
+[package]
+name = "ridu-ios"
+version = "0.1.0"
+edition = "2021"
+description = "Native iOS toolchain engine, Mach-O validation, and iOS build orchestration for Ridu IDE"
+
+[dependencies]
+ridu-core = { path = "../ridu-core" }
+ridu-security = { path = "../ridu-security" }
+ridu-toolchain = { path = "../ridu-toolchain" }
+ridu-build = { path = "../ridu-build" }
+ridu-artifacts = { path = "../ridu-artifacts" }
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
+which = "7"

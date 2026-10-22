@@ -38,47 +38,22 @@
 ## 4. Backend Module Structure (`src-tauri/src/`)
 
 ```
-src-tauri/src/
-├── lib.rs                   # Tauri application setup, state, command registry
-├── main.rs                  # Entrypoint
-├── process/                 # Process execution and lifecycle
-│   ├── runner.rs            # Async command spawning with process groups & streaming
-│   ├── cancellation.rs      # Process tree termination via killpg
-│   ├── lock.rs              # Per-project concurrency locks
-│   └── events.rs            # Tauri event emission (build-output, phase-changed)
-├── toolchain/               # System and toolchain detection
-│   ├── detector.rs          # Probes Flutter, Dart, JDK, Android SDK, Linux tools
-│   └── models.rs            # ToolchainReport, ToolStatus, JdkInfo, SdkInfo
-├── projects/                # Project management
-│   ├── manager.rs           # flutter create, project discovery, pubspec parser
-│   └── validation.rs        # Path validation, structure checks
-├── builds/                  # Build orchestration & job scheduling
-│   ├── models.rs            # BuildRequest, BuildResult, Target, BuildMode, Phase
-│   ├── scheduler.rs         # Job execution queue & state manager
-│   ├── pipeline.rs          # Pre-steps (pub get, analyze, test, clean) + build
-│   └── backends/            # Build backend implementations
-│       ├── mod.rs           # BuildBackend trait definition
-│       ├── web.rs           # FlutterWebBackend (flutter build web --release)
-│       ├── linux.rs         # FlutterLinuxBackend (flutter build linux --release)
-│       ├── android.rs       # FlutterAndroidBackend (flutter build apk / appbundle)
-│       ├── xcross_ios.rs    # XcrossIosBackend (experimental iOS adapter)
-│       └── remote_mac.rs    # RemoteMacIosBackend (future interface placeholder)
-├── artifacts/               # Artifact registry and verification
-│   ├── discovery.rs         # Output parser & filesystem scanner
-│   ├── verifier.rs          # Size, SHA-256 checksum, MIME, timestamps
-│   └── history.rs           # Persistent build history store (SQLite/JSON)
-├── security/                # Security policies & sanitization
-│   ├── paths.rs             # Path canonicalization & traversal protection
-│   ├── redaction.rs         # Secrets scrubber (keys, passwords, tokens)
-│   └── policy.rs            # Execution allowlisting & least privilege
-├── ai/                      # AI build assistant
-│   ├── provider.rs          # Ollama and remote HTTP adapter traits
-│   ├── context.rs           # Token-budgeted context builder
-│   ├── planner.rs           # Failure analysis & patch generation
-│   └── patch.rs             # Diff viewer, git snapshot & rollback
-└── ios/                     # iOS experimental module
-    ├── research.rs          # Capabilities & compatibility detector
-    └── validator.rs         # IPA archive, Payload, Info.plist validator
+src-tauri/
+├── Cargo.toml                   # Workspace root manifest
+├── crates/
+│   ├── ridu-core/               # Shared types, TargetPlatform, BuildPhase, StageStatus, error types
+│   ├── ridu-security/           # PathValidator, PathSecurityError, secret scrubbing regexes
+│   ├── ridu-toolchain/          # ToolchainDetector (Flutter, Dart, Clang, Swift, Android, iOS SDKs)
+│   ├── ridu-project/            # ProjectManager (flutter create, import, analyze, format, pubspec)
+│   ├── ridu-build/              # BuildPipeline, ProcessRunner (setpgid/killpg), concurrency locks
+│   ├── ridu-ios/                # Original iOS engine, Mach-O parser, plugins validator, environment
+│   ├── ridu-signing/            # CodeSignatureVerifier, ProvisioningProfileParser
+│   ├── ridu-artifacts/          # ArtifactDiscovery, ArtifactVerifier, IpaValidator, BuildHistoryStore
+│   └── ridu-device/             # DeviceManager (flutter devices --machine)
+├── src/
+│   ├── lib.rs                   # Tauri application setup, state, command registry
+│   └── main.rs                  # Entrypoint
+└── tests/                       # Integration test suites
 ```
 
 ---

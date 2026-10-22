@@ -1,0 +1,11 @@
+[package]
+name = "ridu-security"
+version = "0.1.0"
+edition = "2021"
+description = "Path validation, secret redaction, and security policies for Ridu IDE"
+
+[dependencies]
+ridu-core = { path = "../ridu-core" }
+regex = "1"
+dunce = "1"
+thiserror = "2"

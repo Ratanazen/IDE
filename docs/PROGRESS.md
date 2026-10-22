@@ -16,6 +16,7 @@ Last Updated: 2026-10-22
 | **M7** | AI Build Assistant | PENDING | Broken fixture diagnosed, patched with approval, revalidated |
 | **M8** | iOS Research Spike | **DONE** | docs/IOS_TOOLCHAIN_RESEARCH.md & docs/XCODE_FUNCTION_COMPATIBILITY.md complete with evidence |
 | **M9** | iOS Adapter, Validators & Packaging | **DONE** | Validator rejects invalid fixtures; adapter reports honest statuses |
+| **M10** | Ridu Modular Workspace & Native iOS Engine | **DONE** | 9-crate modular architecture, Mach-O parser, profile parser, 24/24 tests pass |
 
 ---
 
@@ -102,8 +103,31 @@ Last Updated: 2026-10-22
 ### Milestone 8 & 9: iOS Research Spike & IPA Validation
 - **Status**: DONE
 - **Deliverables**:
-  - `docs/IOS_TOOLCHAIN_RESEARCH.md` (thorough evaluation of xcross, osxcross, libimobiledevice, ios-deploy).
+  - `docs/IOS_TOOLCHAIN_RESEARCH.md` (thorough evaluation of platform capabilities, compiler toolchains, libimobiledevice, ios-deploy).
   - `docs/XCODE_FUNCTION_COMPATIBILITY.md` (15-point capability matrix with honest statuses).
-  - `src-tauri/src/ios/` (Detector, Validator, Models).
-  - `cargo test --test m9_ios_tests` -> 3/3 passed (integrity checks, payload validation, info.plist parsing).
+  - Independent IPA archive inspection, `Payload/` verification, and XML property list extraction.
+- **Blockers**: None.
+
+### Milestone 10: Ridu Modular Workspace & Native iOS Engine
+- **Status**: DONE
+- **Architecture**:
+  - Refactored entire Rust backend into 9 discrete, independent Cargo crates under `src-tauri/crates/`:
+    - `ridu-core`: canonical types (`TargetPlatform`, `BuildPhase`, `BuildStage`, `BuildStageResult`, `BuildPlan`, `BuildReport`, `CapabilityStatus`).
+    - `ridu-security`: `PathValidator`, path traversal protection, secret scrubber for logs/credentials.
+    - `ridu-toolchain`: `ToolchainDetector` for Flutter, Dart, Clang (target triples), Swift (`swiftc`), and iOS SDK sysroots.
+    - `ridu-project`: `ProjectManager`, `ProjectFs`, `pubspec.yaml` parsing, dependency resolution, analyze, format, test.
+    - `ridu-build`: `BuildPipeline`, `ProcessRunner` (Unix `setpgid`/`killpg` process tree cancellation), per-project concurrency locks.
+    - `ridu-ios`: Original iOS engine, 64-bit Mach-O binary header parser (`MH_MAGIC_64`, `CPU_TYPE_ARM64`, load commands), Flutter plugin compatibility inspection, environment preparation. Strict originality with zero xcross dependency.
+    - `ridu-signing`: `CodeSignatureVerifier` (bundle inspection, `CodeResources`), `ProvisioningProfileParser` (CMS embedded XML plist extraction).
+    - `ridu-artifacts`: `ArtifactDiscovery`, `ArtifactVerifier` (SHA-256), `IpaValidator`, `BuildHistoryStore` (`xdg-open`).
+    - `ridu-device`: `DeviceManager` (`flutter devices --machine` parser).
+- **Test Results**:
+  - Total test suite: **24/24 tests passing** (`cargo test -- --test-threads=1`).
+    - `m1_unit_tests.rs`: 8/8 passed (detection, commands, state transitions, child process group cancellation, timeout, locks, redaction, traversal).
+    - `m2_project_tests.rs`: 2/2 passed (project creation, import, analyze).
+    - `m3_build_tests.rs`: 2/2 passed (Linux release bundle build, Web release build).
+    - `m4_android_tests.rs`: 3/3 passed (release APK verification, signing detection, cmdline-tools diagnostic).
+    - `m9_ios_tests.rs`: 3/3 passed (IPA validator integrity, payload directory, Info.plist parsing, honest capability reporting).
+    - `ridu_modular_tests.rs`: 6/6 passed (Mach-O 64-bit parser, provisioning profile parser, code signature verifier, iOS project inspection, build plan generation, stage execution, toolchain APIs).
+  - Frontend build: `pnpm build` (`tsc && vite build`) compiles in **658ms**.
 - **Blockers**: None.

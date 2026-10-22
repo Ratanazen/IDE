@@ -1,0 +1,11 @@
+[package]
+name = "ridu-device"
+version = "0.1.0"
+edition = "2021"
+description = "Connected device detection, emulator management, and hot reload orchestration for Ridu IDE"
+
+[dependencies]
+ridu-core = { path = "../ridu-core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+which = "7"

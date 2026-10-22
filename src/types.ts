@@ -119,7 +119,8 @@ export type IosCapabilityStatus =
 export interface IosToolchainReport {
   host_os: string;
   flutter_version?: string;
-  xcross_version?: string;
+  swift_version?: string;
+  clang_version?: string;
   can_compile: IosCapabilityStatus;
   can_package_ipa: IosCapabilityStatus;
   can_sign: IosCapabilityStatus;

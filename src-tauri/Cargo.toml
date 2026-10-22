@@ -1,8 +1,22 @@
+[workspace]
+members = [
+    ".",
+    "crates/ridu-core",
+    "crates/ridu-security",
+    "crates/ridu-toolchain",
+    "crates/ridu-project",
+    "crates/ridu-build",
+    "crates/ridu-ios",
+    "crates/ridu-signing",
+    "crates/ridu-artifacts",
+    "crates/ridu-device",
+]
+
 [package]
 name = "ratana-flutter-studio"
 version = "0.1.0"
-description = "Ratana Flutter Studio Desktop Engine"
-authors = ["Ratana Team"]
+description = "Ridu IDE Desktop Engine"
+authors = ["Ridu Team"]
 edition = "2021"
 
 [lib]
@@ -13,6 +27,16 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+ridu-core = { path = "crates/ridu-core" }
+ridu-security = { path = "crates/ridu-security" }
+ridu-toolchain = { path = "crates/ridu-toolchain" }
+ridu-project = { path = "crates/ridu-project" }
+ridu-build = { path = "crates/ridu-build" }
+ridu-ios = { path = "crates/ridu-ios" }
+ridu-signing = { path = "crates/ridu-signing" }
+ridu-artifacts = { path = "crates/ridu-artifacts" }
+ridu-device = { path = "crates/ridu-device" }
+
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }

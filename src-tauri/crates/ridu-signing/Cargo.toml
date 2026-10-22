@@ -1,0 +1,12 @@
+[package]
+name = "ridu-signing"
+version = "0.1.0"
+edition = "2021"
+description = "iOS and Android code signing inspection, provisioning profile analysis, and signature verification"
+
+[dependencies]
+ridu-core = { path = "../ridu-core" }
+ridu-security = { path = "../ridu-security" }
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
+walkdir = "2"

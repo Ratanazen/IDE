@@ -1,0 +1,11 @@
+[package]
+name = "ridu-toolchain"
+version = "0.1.0"
+edition = "2021"
+description = "SDK and compiler discovery (Flutter, Dart, Clang, Swift, Android, iOS) for Ridu IDE"
+
+[dependencies]
+ridu-core = { path = "../ridu-core" }
+which = "7"
+regex = "1"
+serde = { version = "1", features = ["derive"] }
