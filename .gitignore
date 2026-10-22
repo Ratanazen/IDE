@@ -28,6 +28,7 @@ build/
 *.ipa
 .flutter-plugins
 .flutter-plugins-dependencies
+**/.kotlin/
 
 # Environment & Secrets (NEVER COMMIT TO GIT)
 .env

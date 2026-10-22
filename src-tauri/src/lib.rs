@@ -1,3 +1,4 @@
+pub mod artifacts;
 pub mod builds;
 pub mod process;
 pub mod projects;
