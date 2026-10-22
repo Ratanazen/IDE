@@ -17,6 +17,12 @@ Last Updated: 2026-10-22
 | **M8** | iOS Research Spike | **DONE** | docs/IOS_TOOLCHAIN_RESEARCH.md & docs/XCODE_FUNCTION_COMPATIBILITY.md complete with evidence |
 | **M9** | iOS Adapter, Validators & Packaging | **DONE** | Validator rejects invalid fixtures; adapter reports honest statuses |
 | **M10** | Ridu Modular Workspace & Native iOS Engine | **DONE** | 9-crate modular architecture, Mach-O parser, profile parser, 24/24 tests pass |
+| **M11** | Live Build Engine & Streaming IPC Bridge | **PLANNED** | Live process output streaming to UI, asynchronous cancellation, real build events |
+| **M12** | Project Studio & Editor with Monaco | **PLANNED** | Multi-file tabs, syntax highlighting, pubspec manager, file operations |
+| **M13** | Device Studio & Live Development | **PLANNED** | Interactive flutter run session, Hot Reload ('r'), Hot Restart ('R') |
+| **M14** | AI Build Assistant & Diagnostics | **PLANNED** | Local Ollama / API LLM backend, sanitized log scrubbing, diff patching |
+| **M15** | Native iOS Sysroot & Remote Mac Agent | **PLANNED** | Local Apple iOS SDK cross-clang integration, remote macOS SSH worker |
+| **M16** | Packaging & Desktop Distribution | **PLANNED** | Arch PKGBUILD, AppImage, deb packages, performance benchmarks |
 
 ---
 
